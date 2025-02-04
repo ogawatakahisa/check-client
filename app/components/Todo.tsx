@@ -3,18 +3,23 @@ import { TodoType } from "../types";
 import { useTodos } from "../hooks/useTodos";
 import { API_URL } from "../constants/url";
 
+// TodoコンポーネントのPropsタイプの定義
 type TodoProps = {
     todo: TodoType;
 };
 
 const Todo = ({ todo }: TodoProps) => {
+    // 編集状態の管理
     const [isEditing, setIsEditing] = useState(false);
+    // 編集用タイトルの状態管理
     const [editedTitle, setEditedTitle] = useState<string>(todo.title);
     const { todos, mutate } = useTodos();
 
+    // 編集ボタンの処理
     const handleEdit = async () => {
-        setIsEditing((prev) => !prev);
+        setIsEditing((prev) => !prev);// 編集状態のトグルを変更
         if (isEditing) {
+            // 編集が完了したらサーバーに更新を反映
             const response = await fetch(`${API_URL}/editTodo/${todo.id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
@@ -26,11 +31,12 @@ const Todo = ({ todo }: TodoProps) => {
                 const updatedTodos = todos.filter((todo: TodoType) =>
                     todo.id === editieTodo.id ? editieTodo : todo
                 );
-                mutate(updatedTodos);
+                mutate(updatedTodos);// 新しいtodoリストをmutateで更新
             }
         }
     };
 
+    // 削除ボタンの処理
     const handleDelete = async (id: number) => {
         const response = await fetch(`${API_URL}/deleteTodo/${todo.id}`, {
             method: "DELETE",
@@ -39,23 +45,24 @@ const Todo = ({ todo }: TodoProps) => {
 
         if (response.ok) {
             const updatedTodos = todos.filter((todo: TodoType) => todo.id !== id);
-            mutate(updatedTodos);
+            mutate(updatedTodos);// 削除後のtodoリストに反映
         }
     };
     
+    // todoの完了状態を切り替える
     const toggleTodoCompletion = async (id: number, isCompleted: boolean) => {
         const response = await fetch(`${API_URL}/editTodo/${todo.id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ isCompleted: !isCompleted })
         });
-    
+        console.log("todoの完了状態"+response);
         if (response.ok) {
             const editieTodo = await response.json();
             const updatedTodos = todos.map((todo: TodoType) =>
                 todo.id === editieTodo.id ? editieTodo : todo
             );
-            mutate(updatedTodos);
+            mutate(updatedTodos);// 完了状態を変更したtodoリストを更新
         }
     };
 
@@ -69,6 +76,7 @@ const Todo = ({ todo }: TodoProps) => {
                             name="todo1"
                             type="checkbox"
                             className="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300 rounded"
+                            checked={todo.isCompleted}
                             onChange={() => toggleTodoCompletion(todo.id, todo.isCompleted)}
                         />
                         <label className="ml-3 block text-gray-900">

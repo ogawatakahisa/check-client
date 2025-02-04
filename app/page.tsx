@@ -7,13 +7,20 @@ import { useTodos } from "./hooks/useTodos";
 import { API_URL } from "./constants/url";
 
 export default function Home() {
-  const inputRef = useRef<HTMLInputElement | null>(null);
-  const router = useRouter();
-  const { todos, mutate } = useTodos();
+  const inputRef = useRef<HTMLInputElement | null>(null);// 入力フィールドの参照
+  const router = useRouter();// ルーターの取得
+  const { todos, mutate } = useTodos();// todoリストを取得
 
   const handlesubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault(); // ページリロードを防ぐ
 
+    // 入力が空なら処理を中断
+    if (!inputRef.current?.value.trim()) {
+      alert("Todoのタイトルを入力してください");
+      return;
+    }
+
+    // 新しいtodoを作成
     const response = await fetch(`${API_URL}/createTodo`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -23,6 +30,7 @@ export default function Home() {
       })
     });
 
+    // リスト全体を最新状態にするためrefreshを使用
     router.refresh();
     if (response.ok) {
       const newTodo = await response.json();
