@@ -5,7 +5,7 @@ import useSWR from "swr";
 import { API_URL } from "../constants/url";
 
 // APIから取得する
-async function fetcher(key: string):Promise<any> {
+async function fetcher(key: string) {
     return fetch(key).then((res) => res.json());
 }
 
