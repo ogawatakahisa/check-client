@@ -10,7 +10,7 @@ import Todo from "./components/Todo";
 import { useTodos } from "./hooks/useTodos";
 import { API_URL } from "./constants/url";
 import { TodoType } from "./types";
-import { CognitoUser } from "amazon-cognito-identity-js";
+// import { CognitoUser } from "amazon-cognito-identity-js";
 
 
 Amplify.configure(awsExports);
