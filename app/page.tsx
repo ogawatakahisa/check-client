@@ -1,26 +1,47 @@
 "use client";
-import Todo from "./components/Todo";
-import { useRef } from 'react';
-import { TodoType } from "./types";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { withAuthenticator } from "@aws-amplify/ui-react";
+import { Amplify } from "aws-amplify";
+import { getCurrentUser } from "aws-amplify/auth";
+import "@aws-amplify/ui-react/styles.css";
+import awsExports from "../aws-exports";
+import Todo from "./components/Todo";
 import { useTodos } from "./hooks/useTodos";
 import { API_URL } from "./constants/url";
+import { TodoType } from "./types";
+import { CognitoUser } from "amazon-cognito-identity-js";
 
-export default function Home() {
-  const inputRef = useRef<HTMLInputElement | null>(null);// 入力フィールドの参照
-  const router = useRouter();// ルーターの取得
-  const { todos, mutate } = useTodos();// todoリストを取得
+
+Amplify.configure(awsExports);
+
+function Home() {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const router = useRouter();
+  const { todos, mutate } = useTodos();
+  const [username, setUsername] = useState<string | null>(null); // ユーザー名を保存するState
+
+  // 🟢 認証されたユーザーの情報を取得
+  useEffect(() => {
+    async function fetchUser() {
+      try {
+        const { username } = await getCurrentUser(); // ✅ 修正
+        setUsername(username);
+      } catch (err) {
+        console.log("Error fetching user: ", err);
+      }
+    }
+  
+    fetchUser();
+  }, []);
 
   const handlesubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); // ページリロードを防ぐ
-
-    // 入力が空なら処理を中断
+    e.preventDefault();
     if (!inputRef.current?.value.trim()) {
       alert("Todoのタイトルを入力してください");
       return;
     }
 
-    // 新しいtodoを作成
     const response = await fetch(`${API_URL}/createTodo`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -30,7 +51,6 @@ export default function Home() {
       })
     });
 
-    // リスト全体を最新状態にするためrefreshを使用
     router.refresh();
     if (response.ok) {
       const newTodo = await response.json();
@@ -43,6 +63,9 @@ export default function Home() {
     <div className="max-w-md mx-auto bg-white shadow-lg rounded-lg overflow-hidden mt-32 py-4 px-4">
       <div className="px-4 py-2">
         <h1 className="text-gray-800 font-bold text-2xl uppercase">To-Do List</h1>
+        {username && (
+          <p className="text-gray-600 text-sm">Welcome, {username}!</p> // 🟢 ユーザー名を表示
+        )}
       </div>
 
       <form className="w-full max-w-sm mx-auto px-4 py-2" onSubmit={handlesubmit}>
@@ -70,3 +93,5 @@ export default function Home() {
     </div>
   );
 }
+
+export default withAuthenticator(Home); // 🟢 Amplify Auth を適用
