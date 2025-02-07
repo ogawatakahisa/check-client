@@ -32,8 +32,8 @@ function Home() {
       try {
         const { username } = await getCurrentUser();
         setUsername(username); // ログイン済みならユーザー名をセット
-      } catch (err) {
-        console.log("User not logged in.");
+      } catch (error) {
+        console.log("User not logged in.", error);
       }
     }
     checkUser();
