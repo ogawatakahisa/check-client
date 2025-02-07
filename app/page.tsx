@@ -1,19 +1,24 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+
+// AWS関連ライブラリ
 import { withAuthenticator } from "@aws-amplify/ui-react";
 import { Amplify } from "aws-amplify";
-import { getCurrentUser } from "aws-amplify/auth";
-import "@aws-amplify/ui-react/styles.css";
-import awsExports from "../aws-exports";
+import { signOut, getCurrentUser, fetchAuthSession } from "aws-amplify/auth";
+import "@aws-amplify/ui-react/styles.css"; // AmplifyのUIスタイルを適用
+import awsExports from "../aws-exports"; // AWS Amplifyの設定ファイル
+
+// コンポーネント、カスタムフック
 import Todo from "./components/Todo";
 import { useTodos } from "./hooks/useTodos";
+
+// 定数、型定義
 import { API_URL } from "./constants/url";
 import { TodoType } from "./types";
-// import { CognitoUser } from "amazon-cognito-identity-js";
 
 
-Amplify.configure(awsExports);
+Amplify.configure(awsExports); //awsExportsの設定をamplifyに適用する
 
 function Home() {
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -21,52 +26,97 @@ function Home() {
   const { todos, mutate } = useTodos();
   const [username, setUsername] = useState<string | null>(null); // ユーザー名を保存するState
 
-  // 🟢 認証されたユーザーの情報を取得
+  // 認証されたユーザーの情報を取得
   useEffect(() => {
-    async function fetchUser() {
+    async function checkUser() {
       try {
-        const { username } = await getCurrentUser(); // ✅ 修正
-        setUsername(username);
+        const { username } = await getCurrentUser();
+        setUsername(username); // ログイン済みならユーザー名をセット
       } catch (err) {
-        console.log("Error fetching user: ", err);
+        console.log("User not logged in.");
       }
     }
-  
-    fetchUser();
+    checkUser();
   }, []);
 
+  // ログアウト処理
+  const handleLogout = async () => {
+    try {
+      await signOut(); // ログアウト処理
+      setUsername(null); // ユーザー名をリセット
+      // router.push("/login"); // ログインページへリダイレクト
+    } catch (error) {
+      console.error("ログアウトエラー:", error);
+    }
+  };
+
+  // タスク追加処理
   const handlesubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // 入力値が空の場合
     if (!inputRef.current?.value.trim()) {
       alert("Todoのタイトルを入力してください");
       return;
     }
 
-    const response = await fetch(`${API_URL}/createTodo`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title: inputRef.current?.value,
-        isCompleted: false
-      })
-    });
+    try {
+      // 認証セッションを取得し、トークンを取得
+      const session = await fetchAuthSession();
+      const accessToken = session.tokens?.accessToken?.toString();
+      if (!accessToken) {
+        throw new Error("No access token available");
+      }
 
-    router.refresh();
-    if (response.ok) {
-      const newTodo = await response.json();
-      mutate([...todos, newTodo]);
-      inputRef.current!.value = "";
+      // 新しいTodoをAPIへリクエスト
+      const response = await fetch(`${API_URL}/createTodo`, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${accessToken}` // 認証トークン
+        },
+        credentials: "include", // cors対応: 認証情報をリクエストに含める
+        body: JSON.stringify({
+          title: inputRef.current?.value,
+          isCompleted: false
+        })
+      });
+
+      // APIレスポンスがエラーだった場合
+      if (!response.ok) {
+        const errorResponse = await response.json();
+        console.error("APIエラー: ", errorResponse);
+        throw new Error("Failed to create todo");
+      }
+
+      // Todoリストを更新し、入力フィールドをクリア
+      router.refresh();
+      if (response.ok) {
+        const newTodo = await response.json();
+        mutate([...(todos || []), newTodo]);
+        inputRef.current!.value = "";
+      }
+    } catch (error) {
+      console.error("トークン取得エラー:", error);
     }
   };
 
   return (
     <div className="max-w-md mx-auto bg-white shadow-lg rounded-lg overflow-hidden mt-32 py-4 px-4">
-      <div className="px-4 py-2">
+      <div className="px-4 py-2 flex justify-between items-center">
         <h1 className="text-gray-800 font-bold text-2xl uppercase">To-Do List</h1>
         {username && (
-          <p className="text-gray-600 text-sm">Welcome, {username}!</p> // 🟢 ユーザー名を表示
+          <button
+            onClick={handleLogout} // ログアウト
+            className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-3 rounded"
+          >
+            Logout
+          </button>
         )}
       </div>
+
+      {username && (
+        <p className="text-gray-600 text-sm px-4">Welcome, {username}!</p> // ユーザー名を表示
+      )}
 
       <form className="w-full max-w-sm mx-auto px-4 py-2" onSubmit={handlesubmit}>
         <div className="flex items-center border-b-2 border-teal-500 py-2">
@@ -94,4 +144,4 @@ function Home() {
   );
 }
 
-export default withAuthenticator(Home); // 🟢 Amplify Auth を適用
+export default withAuthenticator(Home); // Amplify Auth をHomeに適用
