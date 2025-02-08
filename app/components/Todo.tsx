@@ -4,7 +4,6 @@ import { useTodos } from "../hooks/useTodos";
 import { API_URL } from "../constants/url";
 import { fetchAuthSession } from "aws-amplify/auth";
 
-
 /**
  * 認証されたユーザーのアクセストークンを取得する共通関数
  *
@@ -27,6 +26,7 @@ async function getAuthToken(): Promise<string> {
 // TodoコンポーネントのPropsタイプの定義
 type TodoProps = {
     todo: TodoType;
+    selectedDate: string;
 };
 
 /**
@@ -35,40 +35,40 @@ type TodoProps = {
  * @param {TodoProps} props - Todoアイテムのデータ
  * @returns {JSX.Element} - Todoコンポーネント
  */
-const Todo = ({ todo }: TodoProps) => {
+const Todo = ({ todo, selectedDate }: TodoProps) => {
     const [isEditing, setIsEditing] = useState(false);// 編集状態の管理
     const [editedTitle, setEditedTitle] = useState<string>(todo.title);// 編集用タイトルの状態管理
-    const { todos, mutate } = useTodos();// Todoリストを取得するカスタムフック
+    const { todos, mutate } = useTodos(selectedDate); // 選択した日付の Todo を取得
 
     // 編集ボタンの処理
     const handleEdit = async () => {
-        setIsEditing((prev) => !prev);// 編集状態のトグルを切り替える
+        setIsEditing((prev) => !prev); // 編集状態のトグルを切り替える
+    
         if (isEditing) {
             try {
                 const accessToken = await getAuthToken();
-
+    
                 // 編集が完了したらサーバーに更新を反映
                 const response = await fetch(`${API_URL}/editTodo/${todo.id}`, {
                     method: "PUT",
                     headers: {
                         "Content-Type": "application/json",
-                        Authorization: `Bearer ${accessToken}`, // 認証トークン
+                        Authorization: `Bearer ${accessToken}`,
                     },
                     body: JSON.stringify({ title: editedTitle })
                 });
+    
                 if (response.ok) {
-                    const editieTodo = await response.json();
-                    const updatedTodos = todos.filter((todo: TodoType) =>
-                        todo.id === editieTodo.id ? editieTodo : todo
-                    );
-                    mutate(updatedTodos);// キャッシュを更新
+                    const updatedTodo = await response.json();    
+                    mutate(undefined, true);
                 }
             } catch (error) {
                 console.error("トークン取得エラー:", error);
             }
         }
     };
-
+    
+    
     /**
      * Todoの削除処理
      *

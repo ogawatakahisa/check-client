@@ -17,14 +17,14 @@ import { useTodos } from "./hooks/useTodos";
 import { API_URL } from "./constants/url";
 import { TodoType } from "./types";
 
-
 Amplify.configure(awsExports); //awsExportsの設定をamplifyに適用する
 
 function Home() {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const router = useRouter();
-  const { todos, mutate } = useTodos();
   const [username, setUsername] = useState<string | null>(null); // ユーザー名を保存するState
+  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split("T")[0]); // 初期値: 今日
+  const { todos, mutate } = useTodos(selectedDate); // 選択した日付の Todo を取得
 
   // 認証されたユーザーの情報を取得
   useEffect(() => {
@@ -77,7 +77,8 @@ function Home() {
         credentials: "include", // cors対応: 認証情報をリクエストに含める
         body: JSON.stringify({
           title: inputRef.current?.value,
-          isCompleted: false
+          isCompleted: false,
+          date: selectedDate
         })
       });
 
@@ -118,6 +119,17 @@ function Home() {
         <p className="text-gray-600 text-sm px-4">Welcome, {username}!</p> // ユーザー名を表示
       )}
 
+      {/* 📅 カレンダー（選択日を変更できる） */}
+      <div className="px-4 py-2">
+        <label className="block text-gray-700">📅 Select Date</label>
+        <input
+            type="date"
+            className="border rounded py-1 px-2"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+        />
+      </div>
+      
       <form className="w-full max-w-sm mx-auto px-4 py-2" onSubmit={handlesubmit}>
         <div className="flex items-center border-b-2 border-teal-500 py-2">
           <input
@@ -137,7 +149,7 @@ function Home() {
 
       <ul className="divide-y divide-gray-200 px-4">
         {todos?.map((todo: TodoType) => (
-          <Todo key={todo.id} todo={todo} />
+          <Todo key={todo.id} todo={todo} selectedDate={selectedDate}  />
         ))}
       </ul>
     </div>

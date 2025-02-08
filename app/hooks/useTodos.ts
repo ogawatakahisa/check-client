@@ -33,7 +33,6 @@ async function fetcher(url: string) {
         if (!res.ok) {
             throw new Error("Network response was not ok");
         }
-
         return res.json(); 
     } catch (error) {
         console.error("Error fetching auth session:", error);
@@ -42,19 +41,18 @@ async function fetcher(url: string) {
 }
 
 /**
- * SWRを使用してTodoデータを取得するカスタムフック
- * - `useTodos()` を呼び出すだけで、Todo リストデータを取得できる
- * - API からのデータ取得には `fetcher` を使用
+ * SWRを使用して選択した日付のTodoデータを取得するカスタムフック
  * 
+ * @param {string} selectedDate - 取得する日付（YYYY-MM-DD）
  * @returns {Object} - Todoデータと状態管理用のフラグ
  * @returns {any}　todos return.todos - 取得したTodoリスト（配列）
  * @returns {boolean} return.isLoading - データ取得中かどうかのフラグ
  * @returns {Error | undefined} return.error - エラー情報（発生しなければ undefined）
  * @returns {Function} return.mutate - キャッシュを更新する関数
  */
-export const useTodos = () => {
+export const useTodos = (selectedDate: string) => {
     const { data, isLoading, error, mutate } = useSWR(
-        `${API_URL}/allTodos`,
+        `${API_URL}/allTodos/${selectedDate}`,
         fetcher
     );
 
