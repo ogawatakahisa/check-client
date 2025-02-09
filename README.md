@@ -49,7 +49,6 @@ npm install
 ```bash
 NEXT_PUBLIC_API_URL="http://localhost:8080"
 ```
-.env.example を用意し、環境変数のテンプレートを提供しておくと親切。
 
 
 ## アプリの起動
