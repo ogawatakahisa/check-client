@@ -31,7 +31,7 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
-.env*
+# .env*
 
 # vercel
 .vercel
@@ -42,9 +42,6 @@ next-env.d.ts
 
 # AWS Amplify
 ../amplify/
-# aws-exports.js
-# aws-exports.json
-# aws-exports.ts
 next.config.ts
 amplifyconfiguration.json
 team-provider-info.json

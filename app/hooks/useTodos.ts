@@ -35,7 +35,7 @@ async function fetcher(url: string) {
         }
         return res.json(); 
     } catch (error) {
-        console.error("Error fetching auth session:", error);
+        console.log("Error fetching auth session:", error);
         throw error;
     }
 }

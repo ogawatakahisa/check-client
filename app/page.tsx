@@ -33,10 +33,21 @@ function Home() {
         const { username } = await getCurrentUser();
         setUsername(username); // ログイン済みならユーザー名をセット
       } catch (error) {
-        console.log("User not logged in.", error);
+        console.error("User not logged in.", error);
       }
     }
     checkUser();
+
+    const handleTabClose = (event: BeforeUnloadEvent) => {
+      event.preventDefault(); // デフォルトの動作を防ぐ
+      handleLogout(); // 閉じる前に実行する関数
+    };
+
+      window.addEventListener("beforeunload", handleTabClose);
+      
+      return () => {
+          window.removeEventListener("beforeunload", handleTabClose);
+      };
   }, []);
 
   // ログアウト処理
@@ -44,7 +55,6 @@ function Home() {
     try {
       await signOut(); // ログアウト処理
       setUsername(null); // ユーザー名をリセット
-      // router.push("/login"); // ログインページへリダイレクト
     } catch (error) {
       console.error("ログアウトエラー:", error);
     }
