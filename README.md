@@ -58,8 +58,6 @@ http://localhost:3000で動作します。
 ・日付フィルタリング: Todo を日付ごとに管理\
 
 
-
-
 ## 関連リポジトリ
 
 ・バックエンドリポジトリ：[todo-server)](https://github.com/ogawatakahisa/todo-server-sec.git)
