@@ -62,4 +62,4 @@ http://localhost:3000で動作します。
 
 ## 関連リポジトリ
 
-・バックエンドリポジトリ：[todo-server)](https://github.com/ogawatakahisa/todo-server-sec.git
+・バックエンドリポジトリ：[todo-server)](https://github.com/ogawatakahisa/todo-server-sec.git)
