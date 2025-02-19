@@ -60,7 +60,8 @@ const Todo = ({ todo, selectedDate }: TodoProps) => {
                 });
     
                 if (response.ok) {
-                    const updatedTodo = await response.json();    
+                    // const updatedTodo = await response.json();    
+                    await response.json();    
                     mutate(undefined, true);
                 }
             } catch (error) {
