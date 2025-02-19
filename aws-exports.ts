@@ -3,7 +3,7 @@
 
 const awsmobile = {
     "aws_project_region": "ap-northeast-1",  // リージョンを更新
-    "aws_cognito_identity_pool_id": "ap-northeast-1:新しいIDを設定",
+    "aws_cognito_identity_pool_id": "ap-northeast-1:5979047b-79d1-40cd-b685-4bd63c95405d",
     "aws_cognito_region": "ap-northeast-1",
     "aws_user_pools_id": "ap-northeast-1_UCdxtQV6d", // 新しいUserPoolID
     "aws_user_pools_web_client_id": "4e59g4u0t9hccai3n5e77f1o07", // 新しいClientID
